@@ -49,16 +49,20 @@ let contract = serojs.callContract(ABI, contractAddress);
 let decimal = new BigNumber(10).pow(18);
 const {Countdown} = Statistic;
 
-popup.init({
-        name: "ASNOW",
-        contractAddress: "25CHRYtgyxS1juHEv5ERh3PyD4X2PZZF529fgWDTLYbZ1K187MAQf4rVk2cBMLnhNL1APH6i1rSt6HGZZE3c3c2s",
-        github: "https://github.com/asnowhero/asnow-app",
-        author: "asnow",
-        url: "https://asnowhero.github.io/asnow-app/#/",
-        logo: "https://asnowhero.github.io/asnow-app/logo.png",
-    }, function () {
+let host = window.location.host;
+let config = {
+    name: "ASNOW",
+    contractAddress: "25CHRYtgyxS1juHEv5ERh3PyD4X2PZZF529fgWDTLYbZ1K187MAQf4rVk2cBMLnhNL1APH6i1rSt6HGZZE3c3c2s",
+    github: "https://github.com/asnowhero/asnow-app",
+    author: "asnow",
+    url: host+"/asnow-app/",
+    logo: host+"/asnow-app/logo.png",
+};
+
+popup.init(config, function () {
     }
 );
+
 const openNotificationWithIcon = (type, message, desc) => {
     notification[type]({
         message: message,
@@ -882,7 +886,7 @@ class ContentPage extends Component {
                                                 avatar={<p><Avatar shape="square" size={64}
                                                                    src={currentAccount.avatar}/></p>}
                                                 title={
-                                                    <a href={`http://129.211.98.114:3006/web/v0_1_7/account-detail.html?pk=${currentAccount.PK}`}><small>{accountName ? accountName.slice(0, 10) + "..."+accountName.slice(-10) : ""}{this.state.ct_details.isKing ?
+                                                    <a href={`http://129.211.98.114:3006/web/v0_1_7/account-detail.html?pk=${currentAccount.PK}`}><small>{accountName ? accountName.slice(0, 10) + "..." + accountName.slice(-10) : ""}{this.state.ct_details.isKing ?
                                                         <Tag color="gold">VIP</Tag> : ""}</small></a>}
                                                 description={<Rate count={4}
                                                                    value={this.state.ct_details.star ? this.state.ct_details.star : 0}
@@ -914,40 +918,7 @@ class ContentPage extends Component {
                             <List.Item>
                                 <Skeleton loading={loading}>
                                     <Descriptions title={<h1>{Lang[this.state.lang].account.title.contract}</h1>}/>
-                                    {
-                                        showChart ?
-                                            <Row style={{textAlign: 'center'}}>
-                                                <Col span={12} style={{textAlign: 'center'}}>
-                                                    <div>
-                                                        {returnPercent > 0 ? <WaterWave height={234}
-                                                                                        title={Lang[this.state.lang].account.title.totalReturn}
-                                                                                        percent={returnPercent}/> :
-                                                            <WaterWave height={234}
-                                                                       title={Lang[this.state.lang].account.title.totalReturn}
-                                                                       percent={0}/>}
-                                                    </div>
-                                                </Col>
-                                                <Col span={12} style={{textAlign: 'left'}}>
-                                                    <Pie
-                                                        hasLegend
-                                                        animate
-                                                        title={Lang[this.state.lang].account.title.totalReturn}
-                                                        subTitle={Lang[this.state.lang].account.title.totalReturn}
-                                                        total={() => (
-                                                            <span
-                                                                dangerouslySetInnerHTML={{
-                                                                    __html: salesPieData.reduce((pre, now) => now.y + pre, 0),
-                                                                }}
-                                                            />
-                                                        )}
-                                                        data={salesPieData}
-                                                        valueFormat={val => <span
-                                                            dangerouslySetInnerHTML={{__html: val}}/>}
-                                                        height={248}
-                                                    />
-                                                </Col>
-                                            </Row> : ""
-                                    }
+
 
                                     <Row style={{textAlign: 'center'}}>
                                         <Col span={12}>
@@ -1006,6 +977,8 @@ class ContentPage extends Component {
                                         </Col>
 
                                     </Row>
+
+
                                     <Row style={{textAlign: 'center'}}>
                                         <p/>
                                         <Col span={12}>
@@ -1018,6 +991,45 @@ class ContentPage extends Component {
                                                        precision={6}/>
                                         </Col>
                                     </Row>
+
+                                    {showChart &&
+                                    <div style={{padding: "20px 0"}}>
+                                        <Row style={{textAlign: 'center'}}>
+                                            <Col span={24} style={{textAlign: 'center'}}>
+                                                <div>
+                                                    {returnPercent > 0 ? <WaterWave height={234}
+                                                                                    title={Lang[this.state.lang].account.title.totalReturn}
+                                                                                    percent={returnPercent}/> :
+                                                        <WaterWave height={234}
+                                                                   title={Lang[this.state.lang].account.title.totalReturn}
+                                                                   percent={0}/>}
+                                                </div>
+                                            </Col>
+                                        </Row>
+                                        <Row style={{textAlign: 'center'}}>
+
+                                            <Col span={24} style={{textAlign: 'left'}}>
+                                                <Pie
+                                                    hasLegend
+                                                    animate
+                                                    title={Lang[this.state.lang].account.title.totalReturn}
+                                                    subTitle={Lang[this.state.lang].account.title.totalReturn}
+                                                    total={() => (
+                                                        <span
+                                                            dangerouslySetInnerHTML={{
+                                                                __html: salesPieData.reduce((pre, now) => now.y + pre, 0),
+                                                            }}
+                                                        />
+                                                    )}
+                                                    data={salesPieData}
+                                                    valueFormat={val => <span
+                                                        dangerouslySetInnerHTML={{__html: val}}/>}
+                                                    height={248}
+                                                />
+                                            </Col>
+                                        </Row>
+                                    </div>
+                                    }
                                 </Skeleton>
                             </List.Item>
 
