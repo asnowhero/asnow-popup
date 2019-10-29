@@ -393,7 +393,7 @@ class ContentPage extends Component {
         })
 
         let canvas = document.getElementById('qrImg')
-        QRCode.toCanvas(canvas, this.state.currentAccount.mainPKr, function (error) {
+        QRCode.toCanvas(canvas, this.state.currentAccount.MainPKr, function (error) {
             if (error) console.error(error)
             console.log('success!');
         })
@@ -529,7 +529,7 @@ class ContentPage extends Component {
     callMethod(_method, args, callback) {
         let packData = contract.packData(_method, args);
         let callParams = {
-            from: this.state.currentAccount.mainPKr,
+            from: this.state.currentAccount.MainPKr,
             to: contractAddress,
             data: packData
         };
@@ -554,7 +554,7 @@ class ContentPage extends Component {
             cy: cy,
         };
         let estimateParam = {
-            from: that.state.currentAccount.mainPKr,
+            from: that.state.currentAccount.MainPKr,
             to: contractAddress,
             value: "0x" + value,//SERO
             data: packData,
@@ -1071,9 +1071,9 @@ class ContentPage extends Component {
                     <div style={{textAlign: "center"}}>
                         <canvas id="qrImg"></canvas>
                         <p style={{wordBreak: 'normal', whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
-                            <small>{this.state.currentAccount.mainPKr}</small></p>
+                            <small>{this.state.currentAccount.MainPKr}</small></p>
                         <Button className='copyTxt' onClick={() => {
-                            copy(this.state.currentAccount.mainPKr);
+                            copy(this.state.currentAccount.MainPKr);
                             message.success('Copy to clipboard successfully');
                         }}>{Lang[this.state.lang].account.modal.deposit.copy}</Button>
                     </div>
