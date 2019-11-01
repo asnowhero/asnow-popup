@@ -50,7 +50,8 @@ let decimal = new BigNumber(10).pow(18);
 const {Countdown} = Statistic;
 
 let host = window.location.host;
-let config = {
+
+let dapp = {
     name: "ASNOW",
     contractAddress: "25CHRYtgyxS1juHEv5ERh3PyD4X2PZZF529fgWDTLYbZ1K187MAQf4rVk2cBMLnhNL1APH6i1rSt6HGZZE3c3c2s",
     github: "https://github.com/asnowhero/asnow-app",
@@ -59,10 +60,9 @@ let config = {
     logo: host+"/asnow-app/logo.png",
 };
 
-popup.init(config, function () {
+popup.init(dapp, function () {
     }
 );
-
 const openNotificationWithIcon = (type, message, desc) => {
     notification[type]({
         message: message,
@@ -359,7 +359,7 @@ class ContentPage extends Component {
                 that.getRate();
                 that.getContractSeroBalance();
 
-            }, 310)
+            }, 3000)
         }
 
         setInterval(function () {
@@ -506,6 +506,8 @@ class ContentPage extends Component {
                                 calcuStaticProfit = "0";
                             }
                             detail["dayProfit"] = new BigNumber(calcuStaticProfit).dividedBy(decimal).toFixed(6);
+
+                            console.log("detail:",detail);
                             that.setState({
                                 ct_details: detail
                             })
@@ -514,6 +516,8 @@ class ContentPage extends Component {
                     });
                 });
             });
+
+
         });
 
     }
@@ -531,6 +535,9 @@ class ContentPage extends Component {
     }
 
     callMethod(_method, args, callback) {
+
+        console.log("this.state.currentAccount.MainPKr::",this.state.currentAccount);
+
         let packData = contract.packData(_method, args);
         let callParams = {
             from: this.state.currentAccount.MainPKr,
@@ -886,7 +893,7 @@ class ContentPage extends Component {
                                                 avatar={<p><Avatar shape="square" size={64}
                                                                    src={currentAccount.avatar}/></p>}
                                                 title={
-                                                    <a href={`http://129.211.98.114:3006/web/v0_1_7/account-detail.html?pk=${currentAccount.PK}`}><small>{accountName ? accountName.slice(0, 10) + "..." + accountName.slice(-10) : ""}{this.state.ct_details.isKing ?
+                                                    <a href={`http://129.211.98.114:3006/web/v0_1_7/account-detail.html?pk=${currentAccount.PK}`}><small>{accountName ? accountName.slice(0, 10) + "..."+accountName.slice(-10) : ""}{this.state.ct_details.isKing ?
                                                         <Tag color="gold">VIP</Tag> : ""}</small></a>}
                                                 description={<Rate count={4}
                                                                    value={this.state.ct_details.star ? this.state.ct_details.star : 0}
@@ -918,7 +925,6 @@ class ContentPage extends Component {
                             <List.Item>
                                 <Skeleton loading={loading}>
                                     <Descriptions title={<h1>{Lang[this.state.lang].account.title.contract}</h1>}/>
-
 
                                     <Row style={{textAlign: 'center'}}>
                                         <Col span={12}>
@@ -959,11 +965,45 @@ class ContentPage extends Component {
                                             <Statistic title={Lang[this.state.lang].account.title.withdraw}
                                                        value={new BigNumber(this.state.ct_details.value ? this.state.ct_details.value : 0).toFixed(6)}
                                                        precision={6}/>
-                                            <Button style={{marginTop: 16}} type="primary" onClick={() => {
+                                            <Button style={{marginTop: 16}} disabled={new BigNumber(this.state.ct_details.value ? this.state.ct_details.value : 0).comparedTo(0) < 1} type="primary" onClick={() => {
                                                 this.withdraw()
                                             }}>{Lang[this.state.lang].account.button.withdraw}</Button>
                                         </Col>
                                     </Row>
+                                    {
+                                        showChart ?
+                                            <Row style={{textAlign: 'center'}}>
+                                                <Col span={24} style={{textAlign: 'center'}}>
+                                                    <div>
+                                                        {returnPercent > 0 ? <WaterWave height={234}
+                                                                                        title={Lang[this.state.lang].account.title.totalReturn}
+                                                                                        percent={returnPercent}/> :
+                                                            <WaterWave height={234}
+                                                                       title={Lang[this.state.lang].account.title.totalReturn}
+                                                                       percent={0}/>}
+                                                    </div>
+                                                </Col>
+                                                <Col span={24} style={{textAlign: 'left'}}>
+                                                    <Pie
+                                                        hasLegend
+                                                        animate
+                                                        title={Lang[this.state.lang].account.title.totalReturn}
+                                                        subTitle={Lang[this.state.lang].account.title.totalReturn}
+                                                        total={() => (
+                                                            <span
+                                                                dangerouslySetInnerHTML={{
+                                                                    __html: salesPieData.reduce((pre, now) => now.y + pre, 0),
+                                                                }}
+                                                            />
+                                                        )}
+                                                        data={salesPieData}
+                                                        valueFormat={val => <span
+                                                            dangerouslySetInnerHTML={{__html: val}}/>}
+                                                        height={248}
+                                                    />
+                                                </Col>
+                                            </Row> : ""
+                                    }
                                     <Divider dashed={true}/>
                                     <Row style={{textAlign: 'center'}}>
                                         <Col span={12}>
@@ -977,8 +1017,6 @@ class ContentPage extends Component {
                                         </Col>
 
                                     </Row>
-
-
                                     <Row style={{textAlign: 'center'}}>
                                         <p/>
                                         <Col span={12}>
@@ -991,45 +1029,6 @@ class ContentPage extends Component {
                                                        precision={6}/>
                                         </Col>
                                     </Row>
-
-                                    {showChart &&
-                                    <div style={{padding: "20px 0"}}>
-                                        <Row style={{textAlign: 'center'}}>
-                                            <Col span={24} style={{textAlign: 'center'}}>
-                                                <div>
-                                                    {returnPercent > 0 ? <WaterWave height={234}
-                                                                                    title={Lang[this.state.lang].account.title.totalReturn}
-                                                                                    percent={returnPercent}/> :
-                                                        <WaterWave height={234}
-                                                                   title={Lang[this.state.lang].account.title.totalReturn}
-                                                                   percent={0}/>}
-                                                </div>
-                                            </Col>
-                                        </Row>
-                                        <Row style={{textAlign: 'center'}}>
-
-                                            <Col span={24} style={{textAlign: 'left'}}>
-                                                <Pie
-                                                    hasLegend
-                                                    animate
-                                                    title={Lang[this.state.lang].account.title.totalReturn}
-                                                    subTitle={Lang[this.state.lang].account.title.totalReturn}
-                                                    total={() => (
-                                                        <span
-                                                            dangerouslySetInnerHTML={{
-                                                                __html: salesPieData.reduce((pre, now) => now.y + pre, 0),
-                                                            }}
-                                                        />
-                                                    )}
-                                                    data={salesPieData}
-                                                    valueFormat={val => <span
-                                                        dangerouslySetInnerHTML={{__html: val}}/>}
-                                                    height={248}
-                                                />
-                                            </Col>
-                                        </Row>
-                                    </div>
-                                    }
                                 </Skeleton>
                             </List.Item>
 
