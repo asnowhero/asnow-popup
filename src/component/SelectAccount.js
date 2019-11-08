@@ -2,7 +2,7 @@ import React, {Component} from 'react'
 import {Modal, Select} from "antd";
 import Axios from "../server";
 // import Pullup from "pullup-js-sdk";
-import popup from 'popup-js-sdk'
+import seropp from 'sero-pp'
 
 let tmpPkr = '';
 let ajax = new Axios();
@@ -10,6 +10,16 @@ const {Option} = Select;
 
 // var pullup = new Pullup();
 // pullup.setProvider(new pullup.providers.HttpProvider('http://127.0.0.1:2345'));
+let host = window.location.host;
+
+let dapp = {
+    name: "ASNOW",
+    contractAddress: "25CHRYtgyxS1juHEv5ERh3PyD4X2PZZF529fgWDTLYbZ1K187MAQf4rVk2cBMLnhNL1APH6i1rSt6HGZZE3c3c2s",
+    github: "https://github.com/asnowhero/asnow-app",
+    author: "asnow",
+    url: host+"/asnow-app/",
+    logo: host+"/asnow-app/logo.png",
+};
 
 class SelectAccount extends Component {
 
@@ -23,7 +33,13 @@ class SelectAccount extends Component {
 
 
     componentDidMount() {
-        this.getAccounts();
+        let that = this;
+        seropp.init(dapp, function (res) {
+            if(res){
+                that.getAccounts();
+            }
+        });
+
     }
 
     handleOk = e => {
@@ -55,7 +71,7 @@ class SelectAccount extends Component {
     getAccounts() {
         let that = this;
         // let res = pullup.local.accountList()
-        popup.accountList(function (res) {
+        seropp.getAccountList(function (res) {
             if (res) {
                 let dataArray = res;
                 let i = 0;

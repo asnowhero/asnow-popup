@@ -2,7 +2,6 @@ import React, {Component} from 'react';
 import {
     Layout,
     Skeleton,
-    Breadcrumb,
     Descriptions,
     Divider,
     notification,
@@ -15,7 +14,6 @@ import {
     Button,
     Modal,
     ConfigProvider,
-    Radio,
     Input,
     Rate,
     message, Form, InputNumber
@@ -35,7 +33,8 @@ import zhCN from 'antd/es/locale/zh_CN';
 import Language from "./Lang"
 import identicon from "identicon.js"
 import Contract from "./component/contract"
-import popup from 'popup-js-sdk'
+// import popup from 'popup-js-sdk'
+import seropp from 'sero-pp'
 
 let ct = new Contract();
 let Lang = new Language();
@@ -60,9 +59,7 @@ let dapp = {
     logo: host+"/asnow-app/logo.png",
 };
 
-popup.init(dapp, function () {
-    }
-);
+
 const openNotificationWithIcon = (type, message, desc) => {
     notification[type]({
         message: message,
@@ -351,26 +348,31 @@ class ContentPage extends Component {
 
     componentDidMount() {
         let that = this;
-        that.showSelectAccount();
-        if (!this.state.showAccountSelect) {
-            setTimeout(function () {
-                that.getDetail();
-                // that.getAsnowBalances();
-                that.getRate();
-                that.getContractSeroBalance();
+        seropp.init(dapp, function (res) {
+            console.log("res:::",res);
+            if(res){
+                that.showSelectAccount();
+                if (!that.state.showAccountSelect) {
+                    setTimeout(function () {
+                        that.getDetail();
+                        // that.getAsnowBalances();
+                        that.getRate();
+                        that.getContractSeroBalance();
 
-            }, 3000)
-        }
+                    }, 3000)
+                }
 
-        setInterval(function () {
-            that.getDetail();
-            // that.getAsnowBalances();
-            that.getRate();
-            that.getContractSeroBalance();
-            if (that.state.currentAccount.PK) {
-                that.getAccount(that.state.currentAccount.PK)
+                setInterval(function () {
+                    that.getDetail();
+                    // that.getAsnowBalances();
+                    that.getRate();
+                    that.getContractSeroBalance();
+                    if (that.state.currentAccount.PK) {
+                        that.getAccount(that.state.currentAccount.PK)
+                    }
+                }, 60 * 1000)
             }
-        }, 60 * 1000)
+        });
     }
 
     showSelectAccount() {
@@ -438,7 +440,7 @@ class ContentPage extends Component {
     //pullup
     getAccount(pk) {
         let that = this;
-        popup.accountDetail(pk, function (currentAccount) {
+        seropp.getAccountDetail(pk, function (currentAccount) {
             let balanceSero = 0;
             let balanceAsnow = 0;
             let balanceObj = currentAccount.Balance;
@@ -480,20 +482,23 @@ class ContentPage extends Component {
                 isKing: false,
             }
             if (res !== "0x0") {
-                let data = res;
-                detail = {
-                    referId: data[0] == 'JFVVW2ITNSJHF' ? "" : data[0],
-                    largeAreaId: data[1] == 'JFVVW2ITNSJHF' ? "" : data[1],
-                    largeAreaTotal: new BigNumber(data[2]).dividedBy(decimal).toFixed(6),
-                    amount: new BigNumber(data[3]).dividedBy(decimal).toFixed(6),
-                    returnAmount: new BigNumber(data[4]).dividedBy(decimal).toFixed(6),
-                    achievement: new BigNumber(data[5]).dividedBy(decimal).toFixed(6),
-                    recommendNum: parseInt(new BigNumber(data[6]).toString(10)),
-                    profitLevel: parseInt(new BigNumber(data[7]).toString(10)),
-                    value: new BigNumber(data[8]).dividedBy(decimal).toFixed(6),
-                    star: parseInt(new BigNumber(data[9]).toString(10)),
-                    isKing: data[10],
+                if(res){
+                    let data = res;
+                    detail = {
+                        referId: data[0] == 'JFVVW2ITNSJHF' ? "" : data[0],
+                        largeAreaId: data[1] == 'JFVVW2ITNSJHF' ? "" : data[1],
+                        largeAreaTotal: new BigNumber(data[2]).dividedBy(decimal).toFixed(6),
+                        amount: new BigNumber(data[3]).dividedBy(decimal).toFixed(6),
+                        returnAmount: new BigNumber(data[4]).dividedBy(decimal).toFixed(6),
+                        achievement: new BigNumber(data[5]).dividedBy(decimal).toFixed(6),
+                        recommendNum: parseInt(new BigNumber(data[6]).toString(10)),
+                        profitLevel: parseInt(new BigNumber(data[7]).toString(10)),
+                        value: new BigNumber(data[8]).dividedBy(decimal).toFixed(6),
+                        star: parseInt(new BigNumber(data[9]).toString(10)),
+                        isKing: data[10],
+                    }
                 }
+
             }
             that.callMethod("balanceOfAsnow", [], function (balanceOfAsnow) {
                 detail["asnowBalances"] = new BigNumber(balanceOfAsnow).dividedBy(decimal).toFixed(6);
@@ -507,7 +512,6 @@ class ContentPage extends Component {
                             }
                             detail["dayProfit"] = new BigNumber(calcuStaticProfit).dividedBy(decimal).toFixed(6);
 
-                            console.log("detail:",detail);
                             that.setState({
                                 ct_details: detail
                             })
@@ -536,8 +540,6 @@ class ContentPage extends Component {
 
     callMethod(_method, args, callback) {
 
-        console.log("this.state.currentAccount.MainPKr::",this.state.currentAccount);
-
         let packData = contract.packData(_method, args);
         let callParams = {
             from: this.state.currentAccount.MainPKr,
@@ -545,7 +547,7 @@ class ContentPage extends Component {
             data: packData
         };
 
-        popup.call(callParams, function (callData) {
+        seropp.call(callParams, function (callData) {
             // let callData = pullup.sero.call(callParams, "latest");
             let res = contract.unPackData(_method, callData);
             callback(res);
@@ -573,10 +575,10 @@ class ContentPage extends Component {
             cy: cy,
         };
         // executeData["gas"] = pullup.sero.estimateGas(estimateParam);
-        popup.estimateGas(estimateParam, function (gas) {
+        seropp.estimateGas(estimateParam, function (gas) {
             executeData["gas"] = gas;
             // let res = pullup.local.executeContract(executeData)
-            popup.executeContract(executeData, function (res) {
+            seropp.executeContract(executeData, function (res) {
                 callback(res);
             });
         });
@@ -893,8 +895,9 @@ class ContentPage extends Component {
                                                 avatar={<p><Avatar shape="square" size={64}
                                                                    src={currentAccount.avatar}/></p>}
                                                 title={
-                                                    <a href={`http://129.211.98.114:3006/web/v0_1_7/account-detail.html?pk=${currentAccount.PK}`}><small>{accountName ? accountName.slice(0, 10) + "..."+accountName.slice(-10) : ""}{this.state.ct_details.isKing ?
-                                                        <Tag color="gold">VIP</Tag> : ""}</small></a>}
+                                                    <small>{accountName ? accountName.slice(0, 10) + "..."+accountName.slice(-10) : ""}{this.state.ct_details.isKing ?
+                                                        <Tag color="gold">VIP</Tag> : ""}</small>
+                                                }
                                                 description={<Rate count={4}
                                                                    value={this.state.ct_details.star ? this.state.ct_details.star : 0}
                                                                    disabled/>}
